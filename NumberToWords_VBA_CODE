@@ -1,0 +1,55 @@
+Function NumberToWords(ByVal MyNumber)
+    Dim Units As Variant, Tens As Variant, Temp As String
+    Dim DecimalPlace As Integer, Count As Integer
+    ReDim Place(9) As String
+    Place(2) = " Thousand "
+    Place(3) = " Million "
+    Place(4) = " Billion "
+    
+    ' Convert MyNumber to string and trim extra spaces
+    MyNumber = Trim(Str(MyNumber))
+    DecimalPlace = InStr(MyNumber, ".")
+    
+    If DecimalPlace > 0 Then
+        MyNumber = Left(MyNumber, DecimalPlace - 1)
+    End If
+    
+    Count = 1
+    Do While MyNumber <> ""
+        Temp = ThreeDigitPart(Right(MyNumber, 3))
+        If Temp <> "" Then NumberToWords = Temp & Place(Count) & NumberToWords
+        If Len(MyNumber) > 3 Then
+            MyNumber = Left(MyNumber, Len(MyNumber) - 3)
+        Else
+            MyNumber = ""
+        End If
+        Count = Count + 1
+    Loop
+    
+    NumberToWords = Application.Trim(NumberToWords)
+End Function
+
+Private Function ThreeDigitPart(ByVal MyNumber)
+    Dim Units As Variant, Tens As Variant
+    Dim Result As String
+    
+    Units = Array("", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", _
+                  "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", _
+                  "Sixteen", "Seventeen", "Eighteen", "Nineteen")
+    Tens = Array("", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety")
+    
+    MyNumber = Right("000" & MyNumber, 3)
+    
+    If Val(Left(MyNumber, 1)) > 0 Then
+        Result = Units(Val(Left(MyNumber, 1))) & " Hundred "
+    End If
+    
+    If Val(Right(MyNumber, 2)) < 20 Then
+        Result = Result & Units(Val(Right(MyNumber, 2)))
+    Else
+        Result = Result & Tens(Val(Mid(MyNumber, 2, 1)))
+        Result = Result & " " & Units(Val(Right(MyNumber, 1)))
+    End If
+    
+    ThreeDigitPart = Result
+End Function
