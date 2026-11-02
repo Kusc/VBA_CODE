@@ -53,3 +53,169 @@ Private Function ThreeDigitPart(ByVal MyNumber)
     
     ThreeDigitPart = Result
 End Function
+
+
+
+########## Indian Numbering System ##############
+
+
+
+
+Public Function NumberToWords(ByVal MyNumber As Variant) As String
+
+    Dim PlaceNames As Variant
+    Dim NumText As String
+    Dim Part As String
+    Dim Words As String
+    Dim Result As String
+    Dim GroupIndex As Long
+    Dim GroupSize As Long
+    Dim DecimalPlace As Long
+    Dim IsNegative As Boolean
+
+    On Error GoTo InvalidNumber
+
+    ' Indian numbering system
+    PlaceNames = Array("", "Thousand", "Lakh", "Crore", _
+                       "Arab", "Kharab", "Neel")
+
+    If IsError(MyNumber) Then GoTo InvalidNumber
+
+    NumText = Trim$(CStr(MyNumber))
+    NumText = Replace$(NumText, ",", "")
+
+    If NumText = "" Then Exit Function
+
+    ' Handle negative numbers
+    If Left$(NumText, 1) = "-" Then
+        IsNegative = True
+        NumText = Mid$(NumText, 2)
+    End If
+
+    ' Ignore decimal portion
+    DecimalPlace = InStr(NumText, ".")
+    If DecimalPlace > 0 Then
+        NumText = Left$(NumText, DecimalPlace - 1)
+    End If
+
+    If NumText = "" Then NumText = "0"
+
+    ' Validate digits
+    If NumText Like "*[!0-9]*" Then GoTo InvalidNumber
+
+    ' Remove leading zeros
+    Do While Len(NumText) > 1 And Left$(NumText, 1) = "0"
+        NumText = Mid$(NumText, 2)
+    Loop
+
+    If NumText = "0" Then
+        NumberToWords = "Zero"
+        Exit Function
+    End If
+
+    GroupIndex = 0
+
+    Do While Len(NumText) > 0
+
+        ' Last group: 3 digits
+        ' Remaining groups: 2 digits each
+        If GroupIndex = 0 Then
+            GroupSize = 3
+        Else
+            GroupSize = 2
+        End If
+
+        If GroupIndex > UBound(PlaceNames) Then
+            NumberToWords = "Number too large"
+            Exit Function
+        End If
+
+        If Len(NumText) > GroupSize Then
+            Part = Right$(NumText, GroupSize)
+            NumText = Left$(NumText, Len(NumText) - GroupSize)
+        Else
+            Part = NumText
+            NumText = ""
+        End If
+
+        Words = ThreeDigitPart(Part)
+
+        If Words <> "" Then
+
+            If GroupIndex > 0 Then
+                Words = Words & " " & PlaceNames(GroupIndex)
+            End If
+
+            If Result <> "" Then
+                Result = Words & " " & Result
+            Else
+                Result = Words
+            End If
+
+        End If
+
+        GroupIndex = GroupIndex + 1
+
+    Loop
+
+    If IsNegative Then Result = "Minus " & Result
+
+    NumberToWords = Result
+    Exit Function
+
+InvalidNumber:
+    NumberToWords = "Invalid Number"
+
+End Function
+
+
+Private Function ThreeDigitPart(ByVal MyNumber As String) As String
+
+    Dim Units As Variant
+    Dim Tens As Variant
+    Dim Num As Long
+    Dim Result As String
+
+    Units = Array("", "One", "Two", "Three", "Four", _
+                  "Five", "Six", "Seven", "Eight", "Nine", _
+                  "Ten", "Eleven", "Twelve", "Thirteen", _
+                  "Fourteen", "Fifteen", "Sixteen", _
+                  "Seventeen", "Eighteen", "Nineteen")
+
+    Tens = Array("", "", "Twenty", "Thirty", _
+                 "Forty", "Fifty", "Sixty", _
+                 "Seventy", "Eighty", "Ninety")
+
+    Num = CLng(Val(MyNumber))
+
+    If Num = 0 Then Exit Function
+
+    ' Convert hundreds
+    If Num >= 100 Then
+        Result = Units(Num \ 100) & " Hundred"
+        Num = Num Mod 100
+    End If
+
+    ' Convert remaining two digits
+    If Num > 0 Then
+
+        If Result <> "" Then Result = Result & " "
+
+        If Num < 20 Then
+            Result = Result & Units(Num)
+        Else
+            Result = Result & Tens(Num \ 10)
+
+            If Num Mod 10 > 0 Then
+                Result = Result & " " & Units(Num Mod 10)
+            End If
+        End If
+
+    End If
+
+    ThreeDigitPart = Result
+
+End Function
+
+
+
